@@ -27,6 +27,13 @@
         color: #00ffae;
         margin-bottom: 0.3rem;
       }
+      .pln {
+        /* small PLN line */
+        display: block;
+        font-size: 0.55em;
+        color: #ccc;
+        margin-top: 0.15em;
+      }
       .change {
         font-size: 1.2rem;
         font-weight: bold;
@@ -123,8 +130,8 @@
         <tr>
           <th>Years Ago / Special Date</th>
           <th>Price Then (USD)</th>
-          <th>ROI (%)</th>
-          <th>CAGR (%)</th>
+          <th>ROI&nbsp;(%)</th>
+          <th>CAGR&nbsp;(%)</th>
         </tr>
       </thead>
       <tbody id="history-table">
@@ -154,49 +161,64 @@
       /* ───────── Config ───────── */
       const FMP_KEY = "NV2O6Okm8rnQ8p7UA8FhNdkA9Xc8CfJB";
 
-      /* ───────── Tooltip text ───────── */
-      const TOOLTIPS = {
-        "S&P 500 (SPY)":
-          "SPY ETF tracks the S&P 500 index of large-cap U.S. stocks.",
-        "Nasdaq 100 (QQQ)":
-          "QQQ ETF tracks the Nasdaq-100, heavy on tech giants.",
-        "Dow Jones (DIA)":
-          "DIA ETF tracks the 30-stock Dow Jones Industrial Average.",
-        "Russell 2000 (IWM)": "IWM ETF covers 2 000 small-cap U.S. companies.",
-        "FTSE 100 (EWU)": "EWU ETF mirrors the FTSE 100 top U.K. companies.",
-        "DAX (EWG)": "EWG ETF tracks Germany’s DAX blue-chip index.",
-        "Nikkei 225 (EWJ)": "EWJ ETF follows Japan’s Nikkei 225.",
-        "Hang Seng (EWH)": "EWH ETF reflects Hong Kong’s Hang Seng index.",
-        "MSCI World ETF": "URTH ETF for MSCI World (23 developed markets).",
-        "Gold (oz)": "Spot price of a troy ounce of gold.",
-        "Silver (oz)": "Spot price of a troy ounce of silver.",
-        "WTI Crude Oil": "U.S. WTI light-sweet crude benchmark.",
-        "Brent Oil": "Global North Sea oil benchmark.",
-        "Natural Gas": "Henry Hub natural-gas benchmark.",
-        "Copper (lbs)": "COMEX copper price per pound.",
-        "Platinum (oz)": "Spot price of platinum.",
-        "US Dollar Index": "DXY — USD vs. basket of six currencies.",
-        "EUR/USD": "Euro-to-U.S.-dollar exchange rate.",
-      };
+      /* ───────── Globals ───────── */
+      let USDPLN = 0; // will hold the FX rate
+      let btc = 0; // current BTC price
+
+      /* ───────── Helpers ───────── */
+      // get a tiny PLN line or nothing if FX failed
+      const plnLine = (usd) =>
+        USDPLN
+          ? `<span class="pln">zł&nbsp;${(usd * USDPLN).toLocaleString(
+              undefined,
+              { maximumFractionDigits: 2 }
+            )}</span>`
+          : "";
+
+      // positive / negative pct with arrow
+      const pct = (v) => `<span class="${v >= 0 ? "positive" : "negative"}">
+        ${v >= 0 ? "▲" : "▼"} ${v > 0 ? "+" : ""}${Math.abs(v).toFixed(
+        2
+      )}%</span>`;
+
+      function ROI(o, n) {
+        return Math.round(((n - o) / o) * 100);
+      }
+      function CAGR(o, n, y) {
+        return Math.round((Math.pow(n / o, 1 / y) - 1) * 100);
+      }
+
+      /* ───────── FX fetch with fallback ───────── */
+      async function fetchUsdPln() {
+        // ① exchangerate.host
+        try {
+          const r = await fetch(
+            "https://api.exchangerate.host/latest?base=USD&symbols=PLN"
+          );
+          USDPLN = (await r.json()).rates.PLN;
+          if (USDPLN) return;
+        } catch {}
+        // ② open.er-api.com
+        try {
+          const r2 = await fetch("https://open.er-api.com/v6/latest/USD");
+          USDPLN = (await r2.json()).rates.PLN;
+        } catch {
+          USDPLN = 0; // both failed → remain 0
+        }
+      }
 
       /* ───────── Bitcoin section ───────── */
-      let btc = 0;
       async function btcPrice() {
         const r = await fetch(
           "https://api.coinbase.com/v2/prices/BTC-USD/spot"
         );
         btc = Math.round(+(await r.json()).data.amount);
-        document.getElementById("current-price").textContent =
-          "$" + btc.toLocaleString();
+        document.getElementById("current-price").innerHTML =
+          "$" + btc.toLocaleString() + plnLine(btc);
         document.getElementById("timestamp").textContent =
           "Updated: " + new Date().toLocaleTimeString();
       }
-      function fmtPct(v) {
-        const cls = v >= 0 ? "positive" : "negative",
-          arrow = v >= 0 ? "▲" : "▼",
-          sign = v > 0 ? "+" : "";
-        return `<span class="${cls}">${arrow} ${sign}${Math.abs(v)}%</span>`;
-      }
+
       async function btcChange() {
         const d = (
           await (
@@ -205,22 +227,17 @@
             )
           ).json()
         ).market_data;
-        const c24 = Math.round(d.price_change_percentage_24h),
-          c7 = Math.round(d.price_change_percentage_7d),
-          c30 = Math.round(d.price_change_percentage_30d);
-        document.getElementById("btc-change").innerHTML = `24h: ${fmtPct(
+        const c24 = Math.round(d.price_change_percentage_24h);
+        const c7 = Math.round(d.price_change_percentage_7d);
+        const c30 = Math.round(d.price_change_percentage_30d);
+        document.getElementById("btc-change").innerHTML = `24h: ${pct(
           c24
-        )} | 7d: ${fmtPct(c7)} | 30d: ${fmtPct(c30)}`;
+        )} | 7d: ${pct(c7)} | 30d: ${pct(c30)}`;
       }
-      function ROI(o, n) {
-        return Math.round(((n - o) / o) * 100);
-      }
-      function CAGR(o, n, y) {
-        return Math.round((Math.pow(n / o, 1 / y) - 1) * 100);
-      }
+
       async function btcTable() {
-        const yrs = [1, 2, 3, 5],
-          tb = document.getElementById("history-table");
+        const yrs = [1, 2, 3, 5];
+        const tb = document.getElementById("history-table");
         tb.innerHTML = "";
         for (const y of yrs) {
           const d = new Date();
@@ -232,10 +249,10 @@
                 .slice(0, 10)}`
             );
             const old = Math.round(+(await r.json()).data.amount);
-            tb.innerHTML += `<tr><td>${y}</td><td>$${old.toLocaleString()}</td><td>${ROI(
-              old,
-              btc
-            )}%</td><td>${CAGR(old, btc, y)}%</td></tr>`;
+            tb.innerHTML += `<tr><td>${y}</td>
+                <td>$${old.toLocaleString()}</td>
+                <td>${ROI(old, btc)}%</td>
+                <td>${CAGR(old, btc, y)}%</td></tr>`;
           } catch {
             tb.innerHTML += `<tr><td>${y}</td><td colspan="3">—</td></tr>`;
           }
@@ -246,11 +263,11 @@
             "https://api.coinbase.com/v2/prices/BTC-USD/spot?date=2020-07-01"
           );
           const old = Math.round(+(await r.json()).data.amount);
-          const yrs = (Date.now() - Date.parse("2020-07-01")) / 31557600000;
-          tb.innerHTML += `<tr class="special-row"><td>July 2020</td><td>$${old.toLocaleString()}</td><td>${ROI(
-            old,
-            btc
-          )}%</td><td>${CAGR(old, btc, yrs)}%</td></tr>`;
+          const yrs2 = (Date.now() - Date.parse("2020-07-01")) / 31557600000;
+          tb.innerHTML += `<tr class="special-row"><td>July 2020</td>
+              <td>$${old.toLocaleString()}</td>
+              <td>${ROI(old, btc)}%</td>
+              <td>${CAGR(old, btc, yrs2)}%</td></tr>`;
         } catch {
           tb.innerHTML += `<tr class="special-row"><td>July 2020</td><td colspan="3">—</td></tr>`;
         }
@@ -277,11 +294,32 @@
         ["US Dollar Index", "DX-Y.NYB"],
         ["EUR/USD", "EURUSD"],
       ];
+
+      const TOOLTIPS = {
+        "S&P 500 (SPY)":
+          "SPY ETF tracks the S&P 500 index of large-cap U.S. stocks.",
+        "Nasdaq 100 (QQQ)":
+          "QQQ ETF tracks the Nasdaq-100, heavy on tech giants.",
+        "Dow Jones (DIA)":
+          "DIA ETF tracks the 30-stock Dow Jones Industrial Average.",
+        "Russell 2000 (IWM)": "IWM ETF covers 2 000 small-cap U.S. companies.",
+        "FTSE 100 (EWU)": "EWU ETF mirrors the FTSE 100 top U.K. companies.",
+        "DAX (EWG)": "EWG ETF tracks Germany’s DAX blue-chip index.",
+        "Nikkei 225 (EWJ)": "EWJ ETF follows Japan’s Nikkei 225.",
+        "Hang Seng (EWH)": "EWH ETF reflects Hong Kong’s Hang Seng index.",
+        "MSCI World ETF": "URTH ETF for MSCI World (23 developed markets).",
+        "Gold (oz)": "Spot price of a troy ounce of gold.",
+        "Silver (oz)": "Spot price of a troy ounce of silver.",
+        "WTI Crude Oil": "U.S. WTI light-sweet crude benchmark.",
+        "Brent Oil": "Global North Sea oil benchmark.",
+        "Natural Gas": "Henry Hub natural-gas benchmark.",
+        "Copper (lbs)": "COMEX copper price per pound.",
+        "Platinum (oz)": "Spot price of platinum.",
+        "US Dollar Index": "DXY — USD vs. basket of six currencies.",
+        "EUR/USD": "Euro-to-U.S.-dollar exchange rate.",
+      };
+
       const tbody = document.getElementById("asset-table-body");
-      const pct = (v) =>
-        `<span class="${v >= 0 ? "positive" : "negative"}">${
-          v >= 0 ? "▲" : "▼"
-        } ${v > 0 ? "+" : ""}${Math.abs(v).toFixed(2)}%</span>`;
 
       async function bulkMap(endpoint) {
         try {
@@ -321,16 +359,18 @@
               change = q.changesPercentage;
             }
             tbody.innerHTML += `<tr>
-        <td><span class="tooltip" data-tip="${
-          TOOLTIPS[name] || name
-        }">${name}</span></td>
-        <td>${
-          price != null
-            ? "$" +
-              price.toLocaleString(undefined, { maximumFractionDigits: 2 })
-            : "—"
-        }</td>
-        <td>${change != null ? pct(change) : "—"}</td></tr>`;
+              <td><span class="tooltip" data-tip="${
+                TOOLTIPS[name] || name
+              }">${name}</span></td>
+              <td>${
+                price != null
+                  ? `$${price.toLocaleString(undefined, {
+                      maximumFractionDigits: 2,
+                    })}${plnLine(price)}`
+                  : "—"
+              }</td>
+              <td>${change != null ? pct(change) : "—"}</td>
+            </tr>`;
           } catch (e) {
             console.error("row error", name, e);
             tbody.innerHTML += `<tr><td>${name}</td><td colspan="2">—</td></tr>`;
@@ -340,14 +380,17 @@
 
       /* ───────── Init & timers ───────── */
       (async () => {
+        await fetchUsdPln(); // get FX first
         await btcPrice();
         await btcChange();
         await btcTable();
         await updateAssets();
-        setInterval(btcPrice, 5000); // Bitcoin price every 5 s
-        setInterval(btcChange, 60000); // BTC % change every 1 min
-        setInterval(btcTable, 3600000); // BTC history every 1 h
-        setInterval(updateAssets, 14400000); // Global snapshot every 4 h
+
+        setInterval(fetchUsdPln, 3600000); // refresh FX hourly
+        setInterval(btcPrice, 5000); // BTC price every 5 s
+        setInterval(btcChange, 60000); // BTC % changes every minute
+        setInterval(btcTable, 3600000); // BTC history hourly
+        setInterval(updateAssets, 14400000); // asset snapshot every 4 h
       })();
     </script>
   </body>
