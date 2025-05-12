@@ -28,7 +28,6 @@
         margin-bottom: 0.3rem;
       }
       .pln {
-        /* small PLN line */
         display: block;
         font-size: 0.55em;
         color: #ccc;
@@ -162,35 +161,36 @@
       const FMP_KEY = "NV2O6Okm8rnQ8p7UA8FhNdkA9Xc8CfJB";
 
       /* ───────── Globals ───────── */
-      let USDPLN = 0; // will hold the FX rate
-      let btc = 0; // current BTC price
+      let USDPLN = 0;
+      let btc = 0;
 
       /* ───────── Helpers ───────── */
-      // get a tiny PLN line or nothing if FX failed
       const plnLine = (usd) =>
         USDPLN
-          ? `<span class="pln">zł&nbsp;${(usd * USDPLN).toLocaleString(
-              undefined,
-              { maximumFractionDigits: 2 }
-            )}</span>`
+          ? `<span class="pln">zł&nbsp;${Math.round(
+              usd * USDPLN
+            ).toLocaleString()}</span>`
           : "";
 
-      // positive / negative pct with arrow
-      const pct = (v) => `<span class="${v >= 0 ? "positive" : "negative"}">
+      // whole-number % for BTC change
+      const pct0 = (v) => {
+        const cls = v >= 0 ? "positive" : "negative";
+        const arrow = v >= 0 ? "▲" : "▼";
+        const sign = v > 0 ? "+" : "";
+        return `<span class="${cls}">${arrow} ${sign}${Math.abs(v)}%</span>`;
+      };
+
+      // 2-decimal % for asset table
+      const pct2 = (v) => `<span class="${v >= 0 ? "positive" : "negative"}">
         ${v >= 0 ? "▲" : "▼"} ${v > 0 ? "+" : ""}${Math.abs(v).toFixed(
         2
       )}%</span>`;
 
-      function ROI(o, n) {
-        return Math.round(((n - o) / o) * 100);
-      }
-      function CAGR(o, n, y) {
-        return Math.round((Math.pow(n / o, 1 / y) - 1) * 100);
-      }
+      const ROI = (o, n) => Math.round(((n - o) / o) * 100);
+      const CAGR = (o, n, y) => Math.round((Math.pow(n / o, 1 / y) - 1) * 100);
 
       /* ───────── FX fetch with fallback ───────── */
       async function fetchUsdPln() {
-        // ① exchangerate.host
         try {
           const r = await fetch(
             "https://api.exchangerate.host/latest?base=USD&symbols=PLN"
@@ -198,12 +198,11 @@
           USDPLN = (await r.json()).rates.PLN;
           if (USDPLN) return;
         } catch {}
-        // ② open.er-api.com
         try {
           const r2 = await fetch("https://open.er-api.com/v6/latest/USD");
           USDPLN = (await r2.json()).rates.PLN;
         } catch {
-          USDPLN = 0; // both failed → remain 0
+          USDPLN = 0;
         }
       }
 
@@ -230,9 +229,9 @@
         const c24 = Math.round(d.price_change_percentage_24h);
         const c7 = Math.round(d.price_change_percentage_7d);
         const c30 = Math.round(d.price_change_percentage_30d);
-        document.getElementById("btc-change").innerHTML = `24h: ${pct(
+        document.getElementById("btc-change").innerHTML = `24h: ${pct0(
           c24
-        )} | 7d: ${pct(c7)} | 30d: ${pct(c30)}`;
+        )} | 7d: ${pct0(c7)} | 30d: ${pct0(c30)}`;
       }
 
       async function btcTable() {
@@ -369,10 +368,9 @@
                     })}${plnLine(price)}`
                   : "—"
               }</td>
-              <td>${change != null ? pct(change) : "—"}</td>
+              <td>${change != null ? pct2(change) : "—"}</td>
             </tr>`;
-          } catch (e) {
-            console.error("row error", name, e);
+          } catch {
             tbody.innerHTML += `<tr><td>${name}</td><td colspan="2">—</td></tr>`;
           }
         }
@@ -386,11 +384,11 @@
         await btcTable();
         await updateAssets();
 
-        setInterval(fetchUsdPln, 3600000); // refresh FX hourly
-        setInterval(btcPrice, 5000); // BTC price every 5 s
-        setInterval(btcChange, 60000); // BTC % changes every minute
-        setInterval(btcTable, 3600000); // BTC history hourly
-        setInterval(updateAssets, 14400000); // asset snapshot every 4 h
+        setInterval(fetchUsdPln, 3600000); // FX hourly
+        setInterval(btcPrice, 5000); // BTC every 5 s
+        setInterval(btcChange, 60000); // change every min
+        setInterval(btcTable, 3600000); // history hourly
+        setInterval(updateAssets, 14400000); // assets every 4 h
       })();
     </script>
   </body>
