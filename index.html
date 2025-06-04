@@ -1,395 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Bitcoin & Global Market Tracker</title>
-    <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        background: #0e1117;
-        color: #f5f5f5;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px 20px;
-        margin: 0;
-      }
-      h1,
-      h2 {
-        margin: 0.5rem 0;
-        font-weight: 700;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>Bitcoin & Global Market Tracker</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0e1117;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      margin: 0;
+    }
+    h1,
+    h2 {
+      margin: 0.5rem 0;
+      font-weight: 700;
+    }
 
-      /* Bitcoin */
-      #current-price {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #00ffae;
-        margin-bottom: 0.3rem;
-      }
-      .pln {
-        display: block;
-        font-size: 0.55em;
-        color: #ccc;
-        margin-top: 0.15em;
-      }
-      .change {
-        font-size: 1.2rem;
-        font-weight: bold;
-        display: flex;
-        gap: 15px;
-        margin-bottom: 1rem;
-      }
-      .positive {
-        color: #00ffae;
-      }
-      .negative {
-        color: #ff4d4d;
-      }
-      #timestamp {
-        font-size: 0.9rem;
-        color: #aaa;
-        margin-bottom: 2rem;
-      }
+    /* Bitcoin */
+    #current-price {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #00ffae;
+      margin-bottom: 0.3rem;
+    }
+    .pln {
+      display: block;
+      font-size: 0.55em;
+      color: #ccc;
+      margin-top: 0.15em;
+    }
+    .change {
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      gap: 15px;
+      margin-bottom: 1rem;
+    }
+    .positive {
+      color: #00ffae;
+    }
+    .negative {
+      color: #ff4d4d;
+    }
+    #timestamp {
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-bottom: 2rem;
+    }
 
-      /* Tables */
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        max-width: 900px;
-        font-size: 0.95rem;
-        margin-bottom: 2rem;
-        color: #eee;
-      }
-      th,
-      td {
-        border: 1px solid #415a77;
-        padding: 8px 12px;
-        text-align: center;
-      }
-      th {
-        background: #1b263b;
-        color: #a9d6e5;
-      }
-      tr:nth-child(even) {
-        background: #16212f;
-      }
-      tr:hover {
-        background: #2c3e50;
-      }
-      .separator-row td {
-        background: #0e1117;
-        height: 20px;
-        border: none;
-      }
-      .special-row td {
-        background: #1f354d;
-        font-weight: bold;
-      }
+    /* Tables */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 900px;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      color: #eee;
+    }
+    th,
+    td {
+      border: 1px solid #415a77;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    th {
+      background: #1b263b;
+      color: #a9d6e5;
+    }
+    tr:nth-child(even) {
+      background: #16212f;
+    }
+    tr:hover {
+      background: #2c3e50;
+    }
+    .separator-row td {
+      background: #0e1117;
+      height: 20px;
+      border: none;
+    }
+    .special-row td {
+      background: #1f354d;
+      font-weight: bold;
+    }
 
-      /* Tooltip */
-      .tooltip {
-        position: relative;
-        cursor: help;
-        display: inline-block;
-      }
-      .tooltip::after {
-        content: attr(data-tip);
-        position: absolute;
-        bottom: 115%;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 240px;
-        background: #333;
-        color: #fff;
-        padding: 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        line-height: 1.3;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition: opacity 0.15s;
-        z-index: 9999;
-      }
-      .tooltip:hover::after {
-        opacity: 1;
-        visibility: visible;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Bitcoin Price (USD)</h1>
-    <div id="current-price">Loading…</div>
-    <div class="change" id="btc-change">—</div>
-    <div id="timestamp">—</div>
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      cursor: help;
+      display: inline-block;
+    }
+    .tooltip::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 115%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      background: #333;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      line-height: 1.3;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 9999;
+    }
+    .tooltip:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bitcoin Price (USD)</h1>
+  <div id="current-price">Loading…</div>
+  <div class="change" id="btc-change">—</div>
+  <div id="timestamp">—</div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Years Ago / Special Date</th>
-          <th>Price Then (USD)</th>
-          <th>ROI&nbsp;(%)</th>
-          <th>CAGR&nbsp;(%)</th>
-        </tr>
-      </thead>
-      <tbody id="history-table">
-        <tr>
-          <td colspan="4">Loading…</td>
-        </tr>
-      </tbody>
-    </table>
+  <table>
+    <thead>
+      <tr>
+        <th>Years Ago / Special Date</th>
+        <th>Price Then (USD)</th>
+        <th>ROI&nbsp;(%)</th>
+        <th>CAGR&nbsp;(%)</th>
+      </tr>
+    </thead>
+    <tbody id="history-table">
+      <tr>
+        <td colspan="4">Loading…</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <h2>Global Market Snapshot (Top Assets)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Asset</th>
-          <th>Price (USD)</th>
-          <th>24&nbsp;h</th>
-        </tr>
-      </thead>
-      <tbody id="asset-table-body">
-        <tr>
-          <td colspan="3">Loading…</td>
-        </tr>
-      </tbody>
-    </table>
+  <h2>Global Market Snapshot (Top Assets)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Asset</th>
+        <th>Price&nbsp;(USD)</th>
+        <th>24&nbsp;h</th>
+        <th>7&nbsp;d</th>
+        <th>30&nbsp;d</th>
+      </tr>
+    </thead>
+    <tbody id="asset-table-body">
+      <tr>
+        <td colspan="5">Loading…</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <script>
-      /* ───────── Config ───────── */
-      const FMP_KEY = "NV2O6Okm8rnQ8p7UA8FhNdkA9Xc8CfJB";
+  <script>
+    /* ───────── Config ───────── */
+    const FMP_KEY = "NV2O6Okm8rnQ8p7UA8FhNdkA9Xc8CfJB";
 
-      /* ───────── Globals ───────── */
-      let USDPLN = 0;
-      let btc = 0;
+    /* ───────── Globals ───────── */
+    let USDPLN = 0;
+    let btc = 0;
 
-      /* ───────── Helpers ───────── */
-      const plnLine = (usd) =>
-        USDPLN
-          ? `<span class="pln">zł&nbsp;${Math.round(
-              usd * USDPLN
-            ).toLocaleString()}</span>`
-          : "";
+    /* ───────── Helpers ───────── */
+    const plnLine = (usd) =>
+      USDPLN
+        ? `<span class="pln">zł&nbsp;${Math.round(
+            usd * USDPLN
+          ).toLocaleString()}</span>`
+        : "";
 
-      // whole-number % for BTC change
-      const pct0 = (v) => {
-        const cls = v >= 0 ? "positive" : "negative";
-        const arrow = v >= 0 ? "▲" : "▼";
-        const sign = v > 0 ? "+" : "";
-        return `<span class="${cls}">${arrow} ${sign}${Math.abs(v)}%</span>`;
-      };
+    const pct0 = (v) => {
+      const cls = v >= 0 ? "positive" : "negative";
+      const arrow = v >= 0 ? "▲" : "▼";
+      const sign = v > 0 ? "+" : "";
+      return `<span class="${cls}">${arrow} ${sign}${Math.abs(v)}%</span>`;
+    };
 
-      // 2-decimal % for asset table
-      const pct2 = (v) => `<span class="${v >= 0 ? "positive" : "negative"}">
-        ${v >= 0 ? "▲" : "▼"} ${v > 0 ? "+" : ""}${Math.abs(v).toFixed(
-        2
-      )}%</span>`;
+    const pct2 = (v) => `<span class="${v >= 0 ? "positive" : "negative"}">
+      ${v >= 0 ? "▲" : "▼"} ${v > 0 ? "+" : ""}${Math.abs(v).toFixed(
+      2
+    )}%</span>`;
 
-      const ROI = (o, n) => Math.round(((n - o) / o) * 100);
-      const CAGR = (o, n, y) => Math.round((Math.pow(n / o, 1 / y) - 1) * 100);
+    const ROI = (o, n) => Math.round(((n - o) / o) * 100);
+    const CAGR = (o, n, y) => Math.round((Math.pow(n / o, 1 / y) - 1) * 100);
 
-      /* ───────── FX fetch with fallback ───────── */
-      async function fetchUsdPln() {
-        try {
-          const r = await fetch(
-            "https://api.exchangerate.host/latest?base=USD&symbols=PLN"
-          );
-          USDPLN = (await r.json()).rates.PLN;
-          if (USDPLN) return;
-        } catch {}
-        try {
-          const r2 = await fetch("https://open.er-api.com/v6/latest/USD");
-          USDPLN = (await r2.json()).rates.PLN;
-        } catch {
-          USDPLN = 0;
-        }
-      }
-
-      /* ───────── Bitcoin section ───────── */
-      async function btcPrice() {
+    /* ───────── FX fetch ───────── */
+    async function fetchUsdPln() {
+      try {
         const r = await fetch(
-          "https://api.coinbase.com/v2/prices/BTC-USD/spot"
+          "https://api.exchangerate.host/latest?base=USD&symbols=PLN"
         );
-        btc = Math.round(+(await r.json()).data.amount);
-        document.getElementById("current-price").innerHTML =
-          "$" + btc.toLocaleString() + plnLine(btc);
-        document.getElementById("timestamp").textContent =
-          "Updated: " + new Date().toLocaleTimeString();
+        USDPLN = (await r.json()).rates.PLN;
+        if (USDPLN) return;
+      } catch {}
+      try {
+        const r2 = await fetch("https://open.er-api.com/v6/latest/USD");
+        USDPLN = (await r2.json()).rates.PLN;
+      } catch {
+        USDPLN = 0;
       }
+    }
 
-      async function btcChange() {
-        const d = (
-          await (
-            await fetch(
-              "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&market_data=true"
-            )
-          ).json()
-        ).market_data;
-        const c24 = Math.round(d.price_change_percentage_24h);
-        const c7 = Math.round(d.price_change_percentage_7d);
-        const c30 = Math.round(d.price_change_percentage_30d);
-        document.getElementById("btc-change").innerHTML = `24h: ${pct0(
-          c24
-        )} | 7d: ${pct0(c7)} | 30d: ${pct0(c30)}`;
-      }
+    /* ───────── Bitcoin section ───────── */
+    async function btcPrice() {
+      const r = await fetch(
+        "https://api.coinbase.com/v2/prices/BTC-USD/spot"
+      );
+      btc = Math.round(+(await r.json()).data.amount);
+      document.getElementById("current-price").innerHTML =
+        "$" + btc.toLocaleString() + plnLine(btc);
+      document.getElementById("timestamp").textContent =
+        "Updated: " + new Date().toLocaleTimeString();
+    }
 
-      async function btcTable() {
-        const yrs = [1, 2, 3, 5];
-        const tb = document.getElementById("history-table");
-        tb.innerHTML = "";
-        for (const y of yrs) {
-          const d = new Date();
-          d.setFullYear(d.getFullYear() - y);
-          try {
-            const r = await fetch(
-              `https://api.coinbase.com/v2/prices/BTC-USD/spot?date=${d
-                .toISOString()
-                .slice(0, 10)}`
-            );
-            const old = Math.round(+(await r.json()).data.amount);
-            tb.innerHTML += `<tr><td>${y}</td>
-                <td>$${old.toLocaleString()}</td>
-                <td>${ROI(old, btc)}%</td>
-                <td>${CAGR(old, btc, y)}%</td></tr>`;
-          } catch {
-            tb.innerHTML += `<tr><td>${y}</td><td colspan="3">—</td></tr>`;
-          }
-        }
-        tb.innerHTML += `<tr class="separator-row"><td colspan="4"></td></tr>`;
+    async function btcChange() {
+      const d = (
+        await (
+          await fetch(
+            "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&market_data=true"
+          )
+        ).json()
+      ).market_data;
+      const c24 = Math.round(d.price_change_percentage_24h);
+      const c7 = Math.round(d.price_change_percentage_7d);
+      const c30 = Math.round(d.price_change_percentage_30d);
+      document.getElementById("btc-change").innerHTML = `24h: ${pct0(
+        c24
+      )} | 7d: ${pct0(c7)} | 30d: ${pct0(c30)}`;
+    }
+
+    async function btcTable() {
+      const yrs = [1, 2, 3, 5];
+      const tb = document.getElementById("history-table");
+      tb.innerHTML = "";
+      for (const y of yrs) {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - y);
         try {
           const r = await fetch(
-            "https://api.coinbase.com/v2/prices/BTC-USD/spot?date=2020-07-01"
+            `https://api.coinbase.com/v2/prices/BTC-USD/spot?date=${d
+              .toISOString()
+              .slice(0, 10)}`
           );
           const old = Math.round(+(await r.json()).data.amount);
-          const yrs2 = (Date.now() - Date.parse("2020-07-01")) / 31557600000;
-          tb.innerHTML += `<tr class="special-row"><td>July 2020</td>
+          tb.innerHTML += `<tr><td>${y}</td>
               <td>$${old.toLocaleString()}</td>
               <td>${ROI(old, btc)}%</td>
-              <td>${CAGR(old, btc, yrs2)}%</td></tr>`;
+              <td>${CAGR(old, btc, y)}%</td></tr>`;
         } catch {
-          tb.innerHTML += `<tr class="special-row"><td>July 2020</td><td colspan="3">—</td></tr>`;
+          tb.innerHTML += `<tr><td>${y}</td><td colspan="3">—</td></tr>`;
         }
       }
+      tb.innerHTML += `<tr class="separator-row"><td colspan="4"></td></tr>`;
+      try {
+        const r = await fetch(
+          "https://api.coinbase.com/v2/prices/BTC-USD/spot?date=2020-07-01"
+        );
+        const old = Math.round(+(await r.json()).data.amount);
+        const yrs2 = (Date.now() - Date.parse("2020-07-01")) / 31557600000;
+        tb.innerHTML += `<tr class="special-row"><td>July 2020</td>
+            <td>$${old.toLocaleString()}</td>
+            <td>${ROI(old, btc)}%</td>
+            <td>${CAGR(old, btc, yrs2)}%</td></tr>`;
+      } catch {
+        tb.innerHTML += `<tr class="special-row"><td>July 2020</td><td colspan="3">—</td></tr>`;
+      }
+    }
 
-      /* ───────── Global assets ───────── */
-      const ASSETS = [
-        ["S&P 500 (SPY)", "SPY"],
-        ["Nasdaq 100 (QQQ)", "QQQ"],
-        ["Dow Jones (DIA)", "DIA"],
-        ["Russell 2000 (IWM)", "IWM"],
-        ["FTSE 100 (EWU)", "EWU"],
-        ["DAX (EWG)", "EWG"],
-        ["Nikkei 225 (EWJ)", "EWJ"],
-        ["Hang Seng (EWH)", "EWH"],
-        ["MSCI World ETF", "URTH"],
-        ["Gold (oz)", "GCUSD"],
-        ["Silver (oz)", "SIUSD"],
-        ["WTI Crude Oil", "CLUSD"],
-        ["Brent Oil", "BZUSD"],
-        ["Natural Gas", "NGUSD"],
-        ["Copper (lbs)", "HGUSD"],
-        ["Platinum (oz)", "PLUSD"],
-        ["US Dollar Index", "DX-Y.NYB"],
-        ["EUR/USD", "EURUSD"],
-      ];
+    /* ───────── Global assets ───────── */
+    const ASSETS = [
+      ["S&P 500 (SPY)", "SPY"],
+      ["Nasdaq 100 (QQQ)", "QQQ"],
+      ["Dow Jones (DIA)", "DIA"],
+      ["Russell 2000 (IWM)", "IWM"],
+      ["FTSE 100 (EWU)", "EWU"],
+      ["DAX (EWG)", "EWG"],
+      ["Nikkei 225 (EWJ)", "EWJ"],
+      ["Hang Seng (EWH)", "EWH"],
+      ["MSCI World ETF", "URTH"],
+      ["Gold (oz)", "GCUSD"],
+      ["Silver (oz)", "SIUSD"],
+      ["WTI Crude Oil", "CLUSD"],
+      ["Brent Oil", "BZUSD"],
+      ["Natural Gas", "NGUSD"],
+      ["Copper (lbs)", "HGUSD"],
+      ["Platinum (oz)", "PLUSD"],
+      ["US Dollar Index", "DX-Y.NYB"],
+      ["EUR/USD", "EURUSD"],
+    ];
 
-      const TOOLTIPS = {
-        "S&P 500 (SPY)":
-          "SPY ETF tracks the S&P 500 index of large-cap U.S. stocks.",
-        "Nasdaq 100 (QQQ)":
-          "QQQ ETF tracks the Nasdaq-100, heavy on tech giants.",
-        "Dow Jones (DIA)":
-          "DIA ETF tracks the 30-stock Dow Jones Industrial Average.",
-        "Russell 2000 (IWM)": "IWM ETF covers 2 000 small-cap U.S. companies.",
-        "FTSE 100 (EWU)": "EWU ETF mirrors the FTSE 100 top U.K. companies.",
-        "DAX (EWG)": "EWG ETF tracks Germany’s DAX blue-chip index.",
-        "Nikkei 225 (EWJ)": "EWJ ETF follows Japan’s Nikkei 225.",
-        "Hang Seng (EWH)": "EWH ETF reflects Hong Kong’s Hang Seng index.",
-        "MSCI World ETF": "URTH ETF for MSCI World (23 developed markets).",
-        "Gold (oz)": "Spot price of a troy ounce of gold.",
-        "Silver (oz)": "Spot price of a troy ounce of silver.",
-        "WTI Crude Oil": "U.S. WTI light-sweet crude benchmark.",
-        "Brent Oil": "Global North Sea oil benchmark.",
-        "Natural Gas": "Henry Hub natural-gas benchmark.",
-        "Copper (lbs)": "COMEX copper price per pound.",
-        "Platinum (oz)": "Spot price of platinum.",
-        "US Dollar Index": "DXY — USD vs. basket of six currencies.",
-        "EUR/USD": "Euro-to-U.S.-dollar exchange rate.",
-      };
+    const TOOLTIPS = {
+      "S&P 500 (SPY)":
+        "SPY ETF tracks the S&P 500 index of large-cap U.S. stocks.",
+      "Nasdaq 100 (QQQ)":
+        "QQQ ETF tracks the Nasdaq-100, heavy on tech giants.",
+      "Dow Jones (DIA)":
+        "DIA ETF tracks the 30-stock Dow Jones Industrial Average.",
+      "Russell 2000 (IWM)":
+        "IWM ETF covers 2 000 small-cap U.S. companies.",
+      "FTSE 100 (EWU)":
+        "EWU ETF mirrors the FTSE 100 top U.K. companies.",
+      "DAX (EWG)":
+        "EWG ETF tracks Germany’s DAX blue-chip index.",
+      "Nikkei 225 (EWJ)":
+        "EWJ ETF follows Japan’s Nikkei 225.",
+      "Hang Seng (EWH)":
+        "EWH ETF reflects Hong Kong’s Hang Seng index.",
+      "MSCI World ETF":
+        "URTH ETF for MSCI World (23 developed markets).",
+      "Gold (oz)":
+        "Spot price of a troy ounce of gold.",
+      "Silver (oz)":
+        "Spot price of a troy ounce of silver.",
+      "WTI Crude Oil":
+        "U.S. WTI light-sweet crude benchmark.",
+      "Brent Oil":
+        "Global North Sea oil benchmark.",
+      "Natural Gas":
+        "Henry Hub natural-gas benchmark.",
+      "Copper (lbs)":
+        "COMEX copper price per pound.",
+      "Platinum (oz)":
+        "Spot price of platinum.",
+      "US Dollar Index":
+        "DXY — USD vs. basket of six currencies.",
+      "EUR/USD":
+        "Euro-to-U.S.-dollar exchange rate.",
+    };
 
-      const tbody = document.getElementById("asset-table-body");
+    const tbody = document.getElementById("asset-table-body");
 
-      async function bulkMap(endpoint) {
+    async function bulkMap(endpoint) {
+      try {
+        const r = await fetch(
+          `https://financialmodelingprep.com/api/v3/${endpoint}?apikey=${FMP_KEY}`
+        );
+        return (await r.json()).reduce((m, o) => ((m[o.symbol] = o), m), {});
+      } catch {
+        return {};
+      }
+    }
+
+    // fetch last N+1 daily closes and return % change over N days
+    async function pctChangeDays(sym, days) {
+      try {
+        const r = await fetch(
+          `https://financialmodelingprep.com/api/v3/historical-price-full/${encodeURIComponent(
+            sym
+          )}?timeseries=${days + 1}&apikey=${FMP_KEY}`
+        );
+        const hist = (await r.json()).historical || [];
+        if (hist.length <= days) return null;
+        const latest = hist[0].close;
+        const past = hist[days].close;
+        return ((latest - past) / past) * 100;
+      } catch {
+        return null;
+      }
+    }
+
+    async function updateAssets() {
+      tbody.innerHTML = "<tr><td colspan='5'>Loading…</td></tr>";
+      const [comMap, fxMap] = await Promise.all([
+        bulkMap("quotes/commodity"),
+        bulkMap("quotes/forex"),
+      ]);
+      tbody.innerHTML = "";
+      for (const [name, sym] of ASSETS) {
         try {
-          const r = await fetch(
-            `https://financialmodelingprep.com/api/v3/${endpoint}?apikey=${FMP_KEY}`
-          );
-          return (await r.json()).reduce((m, o) => ((m[o.symbol] = o), m), {});
-        } catch {
-          return {};
-        }
-      }
-
-      async function updateAssets() {
-        tbody.innerHTML = "<tr><td colspan='3'>Loading…</td></tr>";
-        const [comMap, fxMap] = await Promise.all([
-          bulkMap("quotes/commodity"),
-          bulkMap("quotes/forex"),
-        ]);
-        tbody.innerHTML = "";
-        for (const [name, sym] of ASSETS) {
-          try {
-            let price, change;
-            if (comMap[sym]) {
-              price = comMap[sym].price;
-              change = comMap[sym].changePercent;
-            } else if (fxMap[sym]) {
-              price = fxMap[sym].price;
-              change = fxMap[sym].changePercent;
-            } else {
-              const r = await fetch(
-                `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(
-                  sym
-                )}?apikey=${FMP_KEY}`
-              );
-              const q = (await r.json())[0] || {};
-              price = q.price;
-              change = q.changesPercentage;
-            }
-            tbody.innerHTML += `<tr>
-              <td><span class="tooltip" data-tip="${
-                TOOLTIPS[name] || name
-              }">${name}</span></td>
-              <td>${
-                price != null
-                  ? `$${price.toLocaleString(undefined, {
-                      maximumFractionDigits: 2,
-                    })}${plnLine(price)}`
-                  : "—"
-              }</td>
-              <td>${change != null ? pct2(change) : "—"}</td>
-            </tr>`;
-          } catch {
-            tbody.innerHTML += `<tr><td>${name}</td><td colspan="2">—</td></tr>`;
+          let price, change24;
+          if (comMap[sym]) {
+            price = comMap[sym].price;
+            change24 = comMap[sym].changePercent;
+          } else if (fxMap[sym]) {
+            price = fxMap[sym].price;
+            change24 = fxMap[sym].changePercent;
+          } else {
+            const q = (
+              await (
+                await fetch(
+                  `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(
+                    sym
+                  )}?apikey=${FMP_KEY}`
+                )
+              ).json()
+            )[0] || {};
+            price = q.price;
+            change24 = q.changesPercentage;
           }
+
+          // 7-day & 30-day changes
+          const [change7, change30] = await Promise.all([
+            pctChangeDays(sym, 7),
+            pctChangeDays(sym, 30),
+          ]);
+
+          tbody.innerHTML += `<tr>
+            <td><span class="tooltip" data-tip="${
+              TOOLTIPS[name] || name
+            }">${name}</span></td>
+            <td>${
+              price != null
+                ? `$${price.toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}`
+                : "—"
+            }</td>
+            <td>${change24 != null ? pct2(change24) : "—"}</td>
+            <td>${change7 != null ? pct2(change7) : "—"}</td>
+            <td>${change30 != null ? pct2(change30) : "—"}</td>
+          </tr>`;
+        } catch {
+          tbody.innerHTML += `<tr><td>${name}</td><td colspan="4">—</td></tr>`;
         }
       }
+    }
 
-      /* ───────── Init & timers ───────── */
-      (async () => {
-        await fetchUsdPln(); // get FX first
-        await btcPrice();
-        await btcChange();
-        await btcTable();
-        await updateAssets();
+    /* ───────── Init & timers ───────── */
+    (async () => {
+      await fetchUsdPln();
+      await btcPrice();
+      await btcChange();
+      await btcTable();
+      await updateAssets();
 
-        setInterval(fetchUsdPln, 3600000); // FX hourly
-        setInterval(btcPrice, 5000); // BTC every 5 s
-        setInterval(btcChange, 60000); // change every min
-        setInterval(btcTable, 3600000); // history hourly
-        setInterval(updateAssets, 14400000); // assets every 4 h
-      })();
-    </script>
-  </body>
+      setInterval(fetchUsdPln, 3600000);      // FX hourly
+      setInterval(btcPrice, 5000);            // BTC every 5 s
+      setInterval(btcChange, 60000);          // 24-h/7-d/30-d change every min
+      setInterval(btcTable, 3600000);         // history hourly
+      setInterval(updateAssets, 14400000);    // assets every 4 h
+    })();
+  </script>
+</body>
 </html>
