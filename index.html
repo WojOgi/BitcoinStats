@@ -25,13 +25,13 @@
     #timestamp   { font-size: 0.9rem; color: #aaa; margin-bottom: 2rem; }
 
     /* Tables */
-    table            { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.95rem; margin-bottom: 2rem; color: #eee; }
-    th, td           { border: 1px solid #415a77; padding: 8px 12px; text-align: center; }
-    th               { background: #1b263b; color: #a9d6e5; }
+    table             { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.95rem; margin-bottom: 2rem; color: #eee; }
+    th, td            { border: 1px solid #415a77; padding: 8px 12px; text-align: center; }
+    th                { background: #1b263b; color: #a9d6e5; }
     tr:nth-child(even){ background: #16212f; }
-    tr:hover         { background: #2c3e50; }
-    .separator-row td{ background: #0e1117; height: 20px; border: none; }
-    .special-row td  { background: #1f354d; font-weight: bold; }
+    tr:hover          { background: #2c3e50; }
+    .separator-row td { background: #0e1117; height: 20px; border: none; }
+    .special-row td   { background: #1f354d; font-weight: bold; }
 
     /* Tooltip */
     .tooltip { position: relative; cursor: help; display: inline-block; }
@@ -71,8 +71,8 @@
         <th>Price&nbsp;(USD)</th>
         <th>24&nbsp;h</th>
         <th>7&nbsp;d</th>
-        <th>30&nbsp;d</th>
         <th>1&nbsp;y</th>
+        <th>3&nbsp;y</th>
       </tr>
     </thead>
     <tbody id="asset-table-body">
@@ -211,7 +211,7 @@
     async function bulkMap(endpoint) {
       try {
         const r = await fetch(`https://financialmodelingprep.com/api/v3/${endpoint}?apikey=${FMP_KEY}`);
-        return (await r.json()).reduce((m,o)=>((m[o.symbol]=o),m),{});
+        return (await r.json()).reduce((m,o)=>(m[o.symbol]=o,m),{});
       } catch { return {}; }
     }
 
@@ -246,17 +246,19 @@
             price = q.price; change24 = q.changesPercentage;
           }
 
-          const [change7, change30, change365] = await Promise.all([
-            pctChangeDays(sym,7), pctChangeDays(sym,30), pctChangeDays(sym,365)
+          const [change7, change365, change1095] = await Promise.all([
+            pctChangeDays(sym,   7),   // 7 d
+            pctChangeDays(sym, 365),   // 1 y
+            pctChangeDays(sym,1095)    // 3 y ≈ 365×3
           ]);
 
           tbody.innerHTML += `<tr>
             <td><span class="tooltip" data-tip="${TOOLTIPS[name]||name}">${name}</span></td>
             <td>${price!=null ? `$${price.toLocaleString(undefined,{maximumFractionDigits:2})}` : "—"}</td>
-            <td>${change24 != null ? pct2(change24)  : "—"}</td>
-            <td>${change7  != null ? pct2(change7)   : "—"}</td>
-            <td>${change30 != null ? pct2(change30)  : "—"}</td>
-            <td>${change365!= null ? pct2(change365) : "—"}</td>
+            <td>${change24  != null ? pct2(change24)   : "—"}</td>
+            <td>${change7   != null ? pct2(change7)    : "—"}</td>
+            <td>${change365 != null ? pct2(change365)  : "—"}</td>
+            <td>${change1095!= null ? pct2(change1095) : "—"}</td>
           </tr>`;
         } catch {
           tbody.innerHTML += `<tr><td>${name}</td><td colspan="5">—</td></tr>`;
@@ -273,7 +275,7 @@
       setInterval(btcPrice,5000);            // 5 s
       setInterval(btcChange,60000);          // 1 min
       setInterval(btcTable,3600000);         // hourly
-      setInterval(updateAssets,14400000);    // 4 h
+      setInterval(updateAssets,14400000);    // every 4 h
     })();
   </script>
 </body>
